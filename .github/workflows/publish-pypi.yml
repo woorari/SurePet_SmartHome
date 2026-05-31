@@ -1,12 +1,12 @@
 name: Publish to PyPI
 
-# Publishes the pysurehub client library to PyPI. The integration's manifest
-# pins `pysurehub==<version>`, so the library must be on PyPI for Home
-# Assistant to install it. Cutting a GitHub release publishes both the HACS
-# zip (release.yml) and the library (this workflow).
+# Publishes the pysurehub client library to PyPI — deliberately DECOUPLED from
+# integration (HACS) releases. The library changes far less often than the
+# integration, so it's published on demand via manual dispatch rather than on
+# every GitHub release. The integration's manifest pins `pysurehub==<version>`;
+# bump that pin by hand when you adopt a newer library.
 #
-# Uses PyPI Trusted Publishing (OIDC) — no API token is stored. A one-time
-# trusted publisher must be configured on PyPI first:
+# Uses PyPI Trusted Publishing (OIDC) — no API token is stored. One-time setup:
 #   https://pypi.org/manage/account/publishing/
 #     PyPI Project Name: pysurehub
 #     Owner:             woorari
@@ -19,9 +19,12 @@ name: Publish to PyPI
 # moving ref; swap it for a SHA if you want fully reproducible runs.
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Library version to publish (e.g. 0.1.1). Blank = use pyproject.toml as-is."
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -33,15 +36,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Sync library version to release tag
-        if: github.event_name == 'release'
+      - name: Set library version (optional override)
+        if: ${{ inputs.version != '' }}
         env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          VERSION: ${{ inputs.version }}
         run: |
-          VERSION="${TAG_NAME#v}"
-          # Validate before using in a command — never trust event input raw.
+          # Validate before using in a command — never trust input raw.
           if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?$'; then
-            echo "::error::Unexpected release tag '${TAG_NAME}' -> version '${VERSION}'"
+            echo "::error::Invalid version '${VERSION}'"
             exit 1
           fi
           sed -i -E "s/^version = \".*\"/version = \"${VERSION}\"/" pyproject.toml
