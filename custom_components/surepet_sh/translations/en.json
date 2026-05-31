@@ -60,7 +60,14 @@
           "locked_out": "Locked out",
           "locked_all": "Locked both ways"
         }
+      },
+      "close_delay": {
+        "name": "Lid close delay",
+        "state": { "fast": "Fast", "normal": "Normal", "slow": "Slow" }
       }
+    },
+    "number": {
+      "bowl_target": { "name": "Bowl {bowl} target" }
     },
     "switch": {
       "pet_indoor_only": { "name": "{pet} indoor only" }

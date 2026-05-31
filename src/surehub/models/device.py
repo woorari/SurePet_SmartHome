@@ -70,14 +70,35 @@ class DeviceTag(SureModel):
     profile: int | None = None
 
 
+class BowlSetting(SureModel):
+    """A feeder bowl's food type and target weight."""
+
+    food_type: int | None = None
+    target: int | None = None
+
+
+class BowlsControl(SureModel):
+    """Feeder bowl configuration."""
+
+    type: int | None = None
+    settings: list[BowlSetting] = Field(default_factory=list)
+
+
+class LidControl(SureModel):
+    """Feeder lid configuration."""
+
+    close_delay: int | None = None
+
+
 class DeviceControl(SureModel):
-    """Desired (writable) device state. Read-only for now; kept loose."""
+    """Desired (writable) device state."""
 
     led_mode: int | None = None
     locking: int | None = None
     curfew: list[dict[str, Any]] | None = None
-    bowls: dict[str, Any] | None = None
-    lid: dict[str, Any] | None = None
+    bowls: BowlsControl | None = None
+    lid: LidControl | None = None
+    training_mode: int | None = None
 
 
 class Device(SureModel):
@@ -105,6 +126,10 @@ class Device(SureModel):
     @property
     def is_flap(self) -> bool:
         return self.product_id in (ProductId.CAT_FLAP, ProductId.PET_FLAP)
+
+    @property
+    def is_feeder(self) -> bool:
+        return self.product_id in (ProductId.FEEDER, ProductId.FEEDER_LITE)
 
     @property
     def curfew_active(self) -> bool:
