@@ -30,8 +30,15 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: SurePetConfigEntry
 ) -> dict[str, Any]:
     """Return redacted diagnostics for a config entry."""
-    coordinator = entry.runtime_data
+    data = entry.runtime_data
     return {
         "entry": async_redact_data(dict(entry.data), TO_REDACT),
-        "account": async_redact_data(coordinator.data.model_dump(mode="json"), TO_REDACT),
+        "account": async_redact_data(data.account.data.model_dump(mode="json"), TO_REDACT),
+        "reports": async_redact_data(
+            {
+                pid: report.model_dump(mode="json")
+                for pid, report in (data.reports.data or {}).items()
+            },
+            TO_REDACT,
+        ),
     }

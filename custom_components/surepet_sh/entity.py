@@ -5,10 +5,10 @@ from __future__ import annotations
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from surehub import Device, Pet
+from surehub import Device, Pet, PetReport
 
 from .const import DOMAIN, MANUFACTURER
-from .coordinator import SurePetCoordinator
+from .coordinator import SurePetCoordinator, SurePetReportCoordinator
 
 
 class SureHubDeviceEntity(CoordinatorEntity[SurePetCoordinator]):
@@ -92,3 +92,44 @@ class SureHubPetEntity(CoordinatorEntity[SurePetCoordinator]):
     @property
     def available(self) -> bool:
         return super().available and self.pet is not None
+
+
+class SureHubPetReportEntity(CoordinatorEntity[SurePetReportCoordinator]):
+    """Base entity for a pet, backed by the (slower) report coordinator."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: SurePetReportCoordinator,
+        account: SurePetCoordinator,
+        pet_id: int,
+        description,  # noqa: ANN001 - platform-specific EntityDescription
+    ) -> None:
+        super().__init__(coordinator)
+        self._account = account
+        self._pet_id = pet_id
+        self.entity_description = description
+        self._attr_unique_id = f"pet-{pet_id}-{description.key}"
+
+    @property
+    def report(self) -> PetReport | None:
+        return (self.coordinator.data or {}).get(self._pet_id)
+
+    @property
+    def _pet(self) -> Pet | None:
+        return self._account.data.pet(self._pet_id) if self._account.data else None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        pet = self._pet
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"pet-{self._pet_id}")},
+            manufacturer=MANUFACTURER,
+            model="Pet",
+            name=pet.name if pet else None,
+        )
+
+    @property
+    def available(self) -> bool:
+        return super().available and self.report is not None

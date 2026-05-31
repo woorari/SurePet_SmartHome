@@ -11,3 +11,6 @@ MANUFACTURER: Final = "Sure Petcare"
 CONF_DEVICE_ID: Final = "device_id"
 
 DEFAULT_SCAN_INTERVAL: Final = timedelta(seconds=300)
+# Activity reports change slowly and the payloads are large, so poll them less
+# often than the main account graph.
+REPORT_SCAN_INTERVAL: Final = timedelta(minutes=30)

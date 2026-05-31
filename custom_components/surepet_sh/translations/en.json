@@ -43,7 +43,13 @@
       "last_feeding": { "name": "Last feeding" },
       "last_feeding_change": { "name": "Last feeding amount" },
       "last_drinking": { "name": "Last drinking" },
-      "last_drinking_change": { "name": "Last drinking amount" }
+      "last_drinking_change": { "name": "Last drinking amount" },
+      "time_outside_today": { "name": "Time outside today" },
+      "trips_today": { "name": "Trips today" },
+      "meals_today": { "name": "Meals today" },
+      "food_eaten_today": { "name": "Food eaten today" },
+      "drinks_today": { "name": "Drinks today" },
+      "water_drunk_today": { "name": "Water drunk today" }
     }
   }
 }

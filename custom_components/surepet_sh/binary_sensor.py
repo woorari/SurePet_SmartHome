@@ -68,7 +68,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up binary sensors."""
-    coordinator = entry.runtime_data
+    coordinator = entry.runtime_data.account
     entities: list[BinarySensorEntity] = []
     for device in coordinator.data.devices:
         entities.extend(

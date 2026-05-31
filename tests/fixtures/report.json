@@ -1,0 +1,30 @@
+{
+  "data": {
+    "movement": {
+      "datapoints": [
+        { "from": "2026-05-31T08:00:00+00:00", "to": "2026-05-31T09:00:00+00:00", "duration": 3600 },
+        { "from": "2026-05-30T08:00:00+00:00", "to": "2026-05-30T10:00:00+00:00", "duration": 7200 }
+      ]
+    },
+    "feeding": {
+      "datapoints": [
+        { "from": "2026-05-31T07:00:00+00:00", "duration": 60, "context": 1, "bowl_count": 1,
+          "weights": [ { "index": 0, "change": -20, "food_type_id": 1 }, { "index": 1, "change": 0 } ] },
+        { "from": "2026-05-31T06:00:00+00:00", "duration": 10, "context": 5, "bowl_count": 1,
+          "weights": [ { "index": 0, "change": 100, "food_type_id": 1 } ] },
+        { "from": "2026-05-31T12:00:00+00:00", "duration": 40, "context": 1, "bowl_count": 1,
+          "weights": [ { "index": 0, "change": -10 } ] },
+        { "from": "2026-05-30T07:00:00+00:00", "duration": 50, "context": 1, "bowl_count": 1,
+          "weights": [ { "index": 0, "change": -99 } ] }
+      ]
+    },
+    "drinking": {
+      "datapoints": [
+        { "from": "2026-05-31T10:00:00+00:00", "duration": 20, "context": 1,
+          "weights": [ { "index": 0, "change": -5, "multi": false } ] },
+        { "from": "2026-05-30T10:00:00+00:00", "duration": 20, "context": 1,
+          "weights": [ { "index": 0, "change": -8 } ] }
+      ]
+    }
+  }
+}

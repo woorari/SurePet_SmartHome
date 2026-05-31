@@ -16,7 +16,7 @@ from .enums import (
     ProductId,
 )
 from .exceptions import ApiError, AuthError, AuthExpiredError, SureHubError
-from .models import Account, Device, Household, Pet
+from .models import Account, Device, Household, Pet, PetReport
 
 __version__ = "0.1.0"
 
@@ -38,6 +38,7 @@ __all__ = [
     "Pet",
     "PetLocation",
     "PetProfile",
+    "PetReport",
     "ProductId",
     "SureHubClient",
     "SureHubError",

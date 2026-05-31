@@ -6,9 +6,11 @@ from .account import Account
 from .device import Device, DeviceControl, DeviceStatus, FirmwareInfo, LockingStatus, Signal
 from .household import Household, Timezone
 from .pet import ConsumptionEvent, Pet, Photo, Position
+from .report import BowlWeight, PetReport, ReportEvent
 
 __all__ = [
     "Account",
+    "BowlWeight",
     "ConsumptionEvent",
     "Device",
     "DeviceControl",
@@ -17,8 +19,10 @@ __all__ = [
     "Household",
     "LockingStatus",
     "Pet",
+    "PetReport",
     "Photo",
     "Position",
+    "ReportEvent",
     "Signal",
     "Timezone",
 ]

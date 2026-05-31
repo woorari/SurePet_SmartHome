@@ -18,16 +18,18 @@ from homeassistant.const import (
     EntityCategory,
     UnitOfElectricPotential,
     UnitOfMass,
+    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import dt as dt_util
 
-from surehub import Device, Pet
+from surehub import Device, Pet, PetReport
 from surehub.enums import PetLocation
 
 from .coordinator import SurePetConfigEntry
-from .entity import SureHubDeviceEntity, SureHubPetEntity
+from .entity import SureHubDeviceEntity, SureHubPetEntity, SureHubPetReportEntity
 
 _LOCATION_OPTIONS = ["inside", "outside"]
 
@@ -42,10 +44,17 @@ class SureHubDeviceSensorDescription(SensorEntityDescription):
 
 @dataclass(frozen=True, kw_only=True)
 class SureHubPetSensorDescription(SensorEntityDescription):
-    """Sensor description for a pet."""
+    """Sensor description for a pet (from the account graph)."""
 
     value_fn: Callable[[Pet], StateType | datetime]
     exists_fn: Callable[[Pet], bool] = lambda _pet: True
+
+
+@dataclass(frozen=True, kw_only=True)
+class SureHubReportSensorDescription(SensorEntityDescription):
+    """Sensor description for a pet daily total (from the report)."""
+
+    value_fn: Callable[[PetReport, datetime], StateType]
 
 
 def _location(pet: Pet) -> str | None:
@@ -142,6 +151,53 @@ PET_SENSORS: tuple[SureHubPetSensorDescription, ...] = (
     ),
 )
 
+REPORT_SENSORS: tuple[SureHubReportSensorDescription, ...] = (
+    SureHubReportSensorDescription(
+        key="time_outside_today",
+        translation_key="time_outside_today",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        suggested_unit_of_measurement=UnitOfTime.MINUTES,
+        suggested_display_precision=0,
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.time_outside(since),
+    ),
+    SureHubReportSensorDescription(
+        key="trips_today",
+        translation_key="trips_today",
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.trips(since),
+    ),
+    SureHubReportSensorDescription(
+        key="meals_today",
+        translation_key="meals_today",
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.meals(since),
+    ),
+    SureHubReportSensorDescription(
+        key="food_eaten_today",
+        translation_key="food_eaten_today",
+        device_class=SensorDeviceClass.WEIGHT,
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.food_eaten(since),
+    ),
+    SureHubReportSensorDescription(
+        key="drinks_today",
+        translation_key="drinks_today",
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.drinks(since),
+    ),
+    SureHubReportSensorDescription(
+        key="water_drunk_today",
+        translation_key="water_drunk_today",
+        device_class=SensorDeviceClass.WEIGHT,
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda report, since: report.water_drunk(since),
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -149,19 +205,21 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up sensors."""
-    coordinator = entry.runtime_data
+    account = entry.runtime_data.account
+    reports = entry.runtime_data.reports
     entities: list[SensorEntity] = []
-    for device in coordinator.data.devices:
+    for device in account.data.devices:
         entities.extend(
-            SureHubDeviceSensor(coordinator, device.id, desc)
+            SureHubDeviceSensor(account, device.id, desc)
             for desc in DEVICE_SENSORS
             if desc.exists_fn(device)
         )
-    for pet in coordinator.data.pets:
+    for pet in account.data.pets:
         entities.extend(
-            SureHubPetSensor(coordinator, pet.id, desc)
-            for desc in PET_SENSORS
-            if desc.exists_fn(pet)
+            SureHubPetSensor(account, pet.id, desc) for desc in PET_SENSORS if desc.exists_fn(pet)
+        )
+        entities.extend(
+            SureHubReportSensor(reports, account, pet.id, desc) for desc in REPORT_SENSORS
         )
     async_add_entities(entities)
 
@@ -178,7 +236,7 @@ class SureHubDeviceSensor(SureHubDeviceEntity, SensorEntity):
 
 
 class SureHubPetSensor(SureHubPetEntity, SensorEntity):
-    """A pet sensor."""
+    """A pet sensor (from the account graph)."""
 
     entity_description: SureHubPetSensorDescription
 
@@ -186,3 +244,21 @@ class SureHubPetSensor(SureHubPetEntity, SensorEntity):
     def native_value(self) -> StateType | datetime:
         pet = self.pet
         return self.entity_description.value_fn(pet) if pet else None
+
+
+class SureHubReportSensor(SureHubPetReportEntity, SensorEntity):
+    """A pet daily-total sensor (from the report)."""
+
+    entity_description: SureHubReportSensorDescription
+
+    @property
+    def native_value(self) -> StateType:
+        report = self.report
+        if report is None:
+            return None
+        return self.entity_description.value_fn(report, dt_util.start_of_local_day())
+
+    @property
+    def last_reset(self) -> datetime:
+        # Daily totals reset at local midnight; tells HA's statistics the period.
+        return dt_util.start_of_local_day()

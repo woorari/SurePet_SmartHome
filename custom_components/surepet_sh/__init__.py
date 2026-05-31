@@ -9,7 +9,12 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from surehub import SureHubClient
 
 from .const import CONF_DEVICE_ID
-from .coordinator import SurePetConfigEntry, SurePetCoordinator
+from .coordinator import (
+    SurePetConfigEntry,
+    SurePetCoordinator,
+    SurePetData,
+    SurePetReportCoordinator,
+)
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
@@ -25,10 +30,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: SurePetConfigEntry) -> b
         email=entry.data.get(CONF_EMAIL),
         password=entry.data.get(CONF_PASSWORD),
     )
-    coordinator = SurePetCoordinator(hass, entry, client)
-    await coordinator.async_config_entry_first_refresh()
+    account = SurePetCoordinator(hass, entry, client)
+    await account.async_config_entry_first_refresh()
 
-    entry.runtime_data = coordinator
+    reports = SurePetReportCoordinator(hass, entry, client, account)
+    await reports.async_config_entry_first_refresh()
+
+    entry.runtime_data = SurePetData(account=account, reports=reports)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

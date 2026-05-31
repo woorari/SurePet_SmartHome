@@ -1,8 +1,9 @@
-"""Data update coordinator for Surepet SmartHome."""
+"""Data update coordinators for Surepet SmartHome."""
 
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_TOKEN
@@ -10,13 +11,28 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from surehub import Account, AuthError, AuthExpiredError, SureHubClient, SureHubError
+from surehub import (
+    Account,
+    AuthError,
+    AuthExpiredError,
+    PetReport,
+    SureHubClient,
+    SureHubError,
+)
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, REPORT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
-type SurePetConfigEntry = ConfigEntry[SurePetCoordinator]
+type SurePetConfigEntry = ConfigEntry[SurePetData]
+
+
+@dataclass
+class SurePetData:
+    """Runtime data for a config entry: the account and report coordinators."""
+
+    account: SurePetCoordinator
+    reports: SurePetReportCoordinator
 
 
 class SurePetCoordinator(DataUpdateCoordinator[Account]):
@@ -59,3 +75,43 @@ class SurePetCoordinator(DataUpdateCoordinator[Account]):
                 data={**self.config_entry.data, CONF_TOKEN: self.client.token},
             )
         return account
+
+
+class SurePetReportCoordinator(DataUpdateCoordinator[dict[int, PetReport]]):
+    """Polls per-pet activity reports, keyed by pet id."""
+
+    config_entry: SurePetConfigEntry
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: SurePetConfigEntry,
+        client: SureHubClient,
+        account: SurePetCoordinator,
+    ) -> None:
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=f"{DOMAIN}_reports",
+            update_interval=REPORT_SCAN_INTERVAL,
+            config_entry=entry,
+        )
+        self.client = client
+        self._account = account
+
+    async def _async_update_data(self) -> dict[int, PetReport]:
+        account = self._account.data
+        if account is None:
+            return {}
+        reports: dict[int, PetReport] = {}
+        for pet in account.pets:
+            if pet.household_id is None:
+                continue
+            try:
+                reports[pet.id] = await self.client.get_pet_report(pet.household_id, pet.id)
+            except (AuthError, AuthExpiredError) as err:
+                raise ConfigEntryAuthFailed("Authentication failed") from err
+            except SureHubError as err:
+                # Don't fail the whole update for one pet's report.
+                _LOGGER.warning("Failed to fetch report for pet %s: %s", pet.id, err)
+        return reports

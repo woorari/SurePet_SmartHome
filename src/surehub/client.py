@@ -12,7 +12,7 @@ from .auth import AuthClient
 from .command import Command
 from .const import MAX_RETRIES, RETRY_BACKOFF, RETRY_STATUSES
 from .exceptions import ApiError, AuthExpiredError
-from .models import Account
+from .models import Account, PetReport
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,3 +98,10 @@ class SureHubClient(AuthClient):
         """Fetch the full account graph (devices, pets, households)."""
         data = await self._request("GET", "/me/start")
         return Account.model_validate((data or {}).get("data", {}))
+
+    async def get_pet_report(self, household_id: int, pet_id: int) -> PetReport:
+        """Fetch a pet's movement/feeding/drinking activity report."""
+        data = await self._request(
+            "GET", f"/report/household/{household_id}/pet/{pet_id}/aggregate"
+        )
+        return PetReport.model_validate((data or {}).get("data", {}))
