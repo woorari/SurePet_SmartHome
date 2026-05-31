@@ -1,0 +1,64 @@
+blueprint:
+  name: Surepet — Emergency escape
+  description: >
+    When an alarm sensor (smoke, CO, security) turns on, open all flaps via the
+    Surepet "Emergency unlock" switch so pets can get out — then restore the
+    previous state once the alarm has been clear for a while.
+
+    NOTE: the unlock is cloud-dependent and not instant. It must not be your
+    pets' only escape route in a fire.
+  domain: automation
+  input:
+    alarm_sensor:
+      name: Alarm sensor
+      description: Binary sensor that turns on during the emergency.
+      selector:
+        entity:
+          domain: binary_sensor
+    emergency_switch:
+      name: Emergency unlock switch
+      description: The Surepet "Emergency unlock" switch.
+      selector:
+        entity:
+          domain: switch
+    restore_after:
+      name: Restore delay
+      description: How long the alarm must be clear before restoring flaps.
+      default: 300
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+          mode: box
+
+mode: restart
+
+triggers:
+  - trigger: state
+    entity_id: !input alarm_sensor
+    to: "on"
+    id: alarm_on
+  - trigger: state
+    entity_id: !input alarm_sensor
+    to: "off"
+    for:
+      seconds: !input restore_after
+    id: alarm_clear
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: alarm_on
+        sequence:
+          - action: switch.turn_on
+            target:
+              entity_id: !input emergency_switch
+      - conditions:
+          - condition: trigger
+            id: alarm_clear
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input emergency_switch

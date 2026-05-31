@@ -1,0 +1,38 @@
+blueprint:
+  name: Surepet — Vacation mode (keep pets in)
+  description: >
+    When a toggle is on, set the chosen "indoor only" switches on (keeping those
+    pets inside); when it turns off, restore them.
+  domain: automation
+  input:
+    toggle:
+      name: Vacation toggle
+      description: An input_boolean that turns vacation mode on/off.
+      selector:
+        entity:
+          domain: input_boolean
+    indoor_switches:
+      name: Indoor-only switches
+      description: The per-pet "indoor only" switches to control.
+      selector:
+        entity:
+          domain: switch
+          multiple: true
+
+mode: queued
+
+triggers:
+  - trigger: state
+    entity_id: !input toggle
+
+actions:
+  - choose:
+      - conditions: "{{ trigger.to_state.state == 'on' }}"
+        sequence:
+          - action: switch.turn_on
+            target:
+              entity_id: !input indoor_switches
+    default:
+      - action: switch.turn_off
+        target:
+          entity_id: !input indoor_switches

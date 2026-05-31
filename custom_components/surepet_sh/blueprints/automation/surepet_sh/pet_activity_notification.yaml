@@ -1,0 +1,47 @@
+blueprint:
+  name: Surepet — Pet activity notification
+  description: >
+    Send a notification (optionally with the pet's photo) whenever a Surepet pet
+    event fires — movement (entered/left), feeding or drinking.
+  domain: automation
+  input:
+    pet_event:
+      name: Pet event entity
+      description: A Surepet movement, feeding or drinking event entity.
+      selector:
+        entity:
+          domain: event
+    notify_service:
+      name: Notify service
+      description: e.g. notify.mobile_app_your_phone
+      selector:
+        text:
+    pet_image:
+      name: Pet photo entity (optional)
+      description: A Surepet pet photo image entity, for a rich notification.
+      default: ""
+      selector:
+        entity:
+          domain: image
+
+mode: queued
+
+triggers:
+  - trigger: state
+    entity_id: !input pet_event
+
+variables:
+  pet_image_entity: !input pet_image
+
+conditions:
+  - condition: template
+    value_template: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] }}"
+
+actions:
+  - action: !input notify_service
+    data:
+      title: "{{ trigger.to_state.name }}"
+      message: "{{ trigger.to_state.attributes.event_type | default('activity') }}"
+      data:
+        image: >
+          {{ state_attr(pet_image_entity, 'entity_picture') if pet_image_entity else none }}
