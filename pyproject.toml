@@ -12,12 +12,30 @@ license = { text = "MIT" }
 authors = [{ name = "René Rieck", email = "contact@rieck.gg" }]
 keywords = ["surepetcare", "surehub", "homeassistant", "pet"]
 dependencies = ["aiohttp>=3.9", "pydantic>=2.7"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Home Automation",
+]
+
+[project.urls]
+Homepage = "https://github.com/woorari/SurePet_SmartHome"
+Repository = "https://github.com/woorari/SurePet_SmartHome"
+Issues = "https://github.com/woorari/SurePet_SmartHome/issues"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-asyncio", "aresponses", "ruff"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/surehub"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/surehub", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
