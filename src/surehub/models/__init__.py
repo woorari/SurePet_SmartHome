@@ -14,6 +14,7 @@ from .device import (
     Signal,
 )
 from .household import Household, HouseholdUser, Timezone
+from .notification import Notification
 from .pet import ConsumptionEvent, Pet, Photo, Position
 from .report import BowlWeight, PetReport, ReportEvent
 
@@ -30,6 +31,7 @@ __all__ = [
     "Household",
     "HouseholdUser",
     "LockingStatus",
+    "Notification",
     "Pet",
     "PetReport",
     "Photo",

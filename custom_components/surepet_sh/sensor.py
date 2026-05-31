@@ -221,6 +221,9 @@ async def async_setup_entry(
         entities.extend(
             SureHubReportSensor(reports, account, pet.id, desc) for desc in REPORT_SENSORS
         )
+    hub = account.data.hub
+    if hub is not None:
+        entities.append(SureHubNotificationSensor(account, hub.id))
     async_add_entities(entities)
 
 
@@ -257,6 +260,36 @@ class SureHubReportSensor(SureHubPetReportEntity, SensorEntity):
         if report is None:
             return None
         return self.entity_description.value_fn(report, dt_util.start_of_local_day())
+
+
+class SureHubNotificationSensor(SureHubDeviceEntity, SensorEntity):
+    """The latest account notification (recent entries in attributes)."""
+
+    def __init__(self, coordinator, device_id: int) -> None:  # noqa: ANN001
+        super().__init__(
+            coordinator,
+            device_id,
+            SensorEntityDescription(
+                key="latest_notification", translation_key="latest_notification"
+            ),
+        )
+
+    @property
+    def native_value(self) -> StateType:
+        notifications = self.coordinator.notifications
+        return notifications[0].text[:255] if notifications else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object] | None:
+        notifications = self.coordinator.notifications
+        if not notifications:
+            return None
+        latest = notifications[0]
+        return {
+            "created_at": latest.created_at.isoformat() if latest.created_at else None,
+            "type": latest.type,
+            "recent": [note.text for note in notifications[:10]],
+        }
 
     @property
     def last_reset(self) -> datetime:

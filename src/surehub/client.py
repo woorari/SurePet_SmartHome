@@ -12,7 +12,7 @@ from .auth import AuthClient
 from .command import Command
 from .const import MAX_RETRIES, RETRY_BACKOFF, RETRY_STATUSES
 from .exceptions import ApiError, AuthExpiredError
-from .models import Account, PetReport
+from .models import Account, Notification, PetReport
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +105,12 @@ class SureHubClient(AuthClient):
             "GET", f"/report/household/{household_id}/pet/{pet_id}/aggregate"
         )
         return PetReport.model_validate((data or {}).get("data", {}))
+
+    async def get_notifications(self) -> list[Notification]:
+        """Fetch the account notification feed (most recent first)."""
+        data = await self._request("GET", "/notification")
+        items = (data or {}).get("data", []) if isinstance(data, dict) else []
+        return [Notification.model_validate(item) for item in items]
 
     async def set_device_control(self, device_id: int, control: dict[str, Any]) -> Any:
         """Update a device's control settings (lock mode, curfew, bowls, …).

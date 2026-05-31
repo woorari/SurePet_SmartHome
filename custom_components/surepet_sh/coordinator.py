@@ -16,6 +16,7 @@ from surehub import (
     Account,
     AuthError,
     AuthExpiredError,
+    Notification,
     PetReport,
     SureHubClient,
     SureHubError,
@@ -55,6 +56,7 @@ class SurePetCoordinator(DataUpdateCoordinator[Account]):
             config_entry=entry,
         )
         self.client = client
+        self.notifications: list[Notification] = []
 
     async def _async_update_data(self) -> Account:
         try:
@@ -75,6 +77,12 @@ class SurePetCoordinator(DataUpdateCoordinator[Account]):
                 self.config_entry,
                 data={**self.config_entry.data, CONF_TOKEN: self.client.token},
             )
+        # Notifications are best-effort; never fail the update over them.
+        try:
+            self.notifications = await self.client.get_notifications()
+        except SureHubError as err:
+            _LOGGER.debug("Could not fetch notifications: %s", err)
+
         self._update_issues(account)
         return account
 

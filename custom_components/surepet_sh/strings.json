@@ -59,7 +59,8 @@
       "meals_today": { "name": "Meals today" },
       "food_eaten_today": { "name": "Food eaten today" },
       "drinks_today": { "name": "Drinks today" },
-      "water_drunk_today": { "name": "Water drunk today" }
+      "water_drunk_today": { "name": "Water drunk today" },
+      "latest_notification": { "name": "Latest notification" }
     },
     "select": {
       "lock_mode": {
