@@ -70,6 +70,14 @@ class DeviceTag(SureModel):
     profile: int | None = None
 
 
+class CurfewEntry(SureModel):
+    """A single curfew window (locked-in between lock and unlock times)."""
+
+    enabled: bool = False
+    lock_time: str | None = None
+    unlock_time: str | None = None
+
+
 class BowlSetting(SureModel):
     """A feeder bowl's food type and target weight."""
 
@@ -95,7 +103,7 @@ class DeviceControl(SureModel):
 
     led_mode: int | None = None
     locking: int | None = None
-    curfew: list[dict[str, Any]] | None = None
+    curfew: list[CurfewEntry] = Field(default_factory=list)
     bowls: BowlsControl | None = None
     lid: LidControl | None = None
     training_mode: int | None = None
@@ -134,3 +142,8 @@ class Device(SureModel):
     @property
     def curfew_active(self) -> bool:
         return self.status.locking is not None and self.status.locking.mode == LockMode.CURFEW
+
+    @property
+    def curfew_window(self) -> CurfewEntry | None:
+        """The first configured curfew window, if any."""
+        return self.control.curfew[0] if self.control.curfew else None

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .account import Account
 from .device import (
+    CurfewEntry,
     Device,
     DeviceControl,
     DeviceStatus,
@@ -20,6 +21,7 @@ __all__ = [
     "Account",
     "BowlWeight",
     "ConsumptionEvent",
+    "CurfewEntry",
     "Device",
     "DeviceControl",
     "DeviceStatus",

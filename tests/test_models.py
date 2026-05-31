@@ -75,6 +75,44 @@ def test_can_write_true_for_writable_member() -> None:
     assert account.can_write is True
 
 
+def test_flap_control_tags_and_curfew_parse() -> None:
+    device = Device.model_validate(
+        {
+            "id": 1,
+            "product_id": 6,
+            "tags": [{"id": 17, "profile": 3}],
+            "control": {
+                "locking": 2,
+                "curfew": [{"enabled": True, "lock_time": "19:00", "unlock_time": "07:00"}],
+            },
+        }
+    )
+    assert device.is_flap
+    assert device.tag_profile(17) == 3
+    assert device.control.locking == 2
+    assert device.curfew_window is not None
+    assert device.curfew_window.enabled is True
+    assert device.curfew_window.lock_time == "19:00"
+
+
+def test_feeder_control_parse() -> None:
+    feeder = Device.model_validate(
+        {
+            "id": 2,
+            "product_id": 4,
+            "control": {
+                "bowls": {"type": 1, "settings": [{"food_type": 1, "target": 100}]},
+                "lid": {"close_delay": 4},
+            },
+        }
+    )
+    assert feeder.is_feeder
+    assert feeder.control.bowls is not None
+    assert feeder.control.bowls.settings[0].target == 100
+    assert feeder.control.lid is not None
+    assert feeder.control.lid.close_delay == 4
+
+
 def test_can_write_false_for_readonly_member() -> None:
     account = Account.model_validate(
         {

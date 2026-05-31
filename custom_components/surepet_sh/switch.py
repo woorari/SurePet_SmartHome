@@ -10,6 +10,7 @@ from surehub.enums import PetProfile
 
 from .coordinator import SurePetConfigEntry, SurePetCoordinator
 from .entity import SureHubDeviceEntity
+from .time import build_curfew
 
 
 async def async_setup_entry(
@@ -26,6 +27,7 @@ async def async_setup_entry(
     for device in account.data.devices:
         if not device.is_flap:
             continue
+        entities.append(SureHubCurfewSwitch(account, device.id))
         for tag in device.tags:
             if tag.id is None:
                 continue
@@ -35,6 +37,37 @@ async def async_setup_entry(
                 )
             )
     async_add_entities(entities)
+
+
+class SureHubCurfewSwitch(SureHubDeviceEntity, SwitchEntity):
+    """Enable/disable the flap's curfew (window 0)."""
+
+    def __init__(self, coordinator: SurePetCoordinator, device_id: int) -> None:
+        super().__init__(
+            coordinator,
+            device_id,
+            SwitchEntityDescription(key="curfew_enabled", translation_key="curfew_enabled"),
+        )
+
+    @property
+    def is_on(self) -> bool:
+        device = self.device
+        window = device.curfew_window if device else None
+        return bool(window and window.enabled)
+
+    async def _set_enabled(self, enabled: bool) -> None:
+        device = self.device
+        if device is None:
+            return
+        payload = build_curfew(device.curfew_window, enabled=enabled)
+        await self.coordinator.client.set_device_control(self._device_id, {"curfew": payload})
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: object) -> None:
+        await self._set_enabled(True)
+
+    async def async_turn_off(self, **kwargs: object) -> None:
+        await self._set_enabled(False)
 
 
 class SureHubIndoorOnlySwitch(SureHubDeviceEntity, SwitchEntity):

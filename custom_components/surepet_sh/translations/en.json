@@ -70,7 +70,12 @@
       "bowl_target": { "name": "Bowl {bowl} target" }
     },
     "switch": {
-      "pet_indoor_only": { "name": "{pet} indoor only" }
+      "pet_indoor_only": { "name": "{pet} indoor only" },
+      "curfew_enabled": { "name": "Curfew" }
+    },
+    "time": {
+      "curfew_lock_time": { "name": "Curfew lock time" },
+      "curfew_unlock_time": { "name": "Curfew unlock time" }
     }
   }
 }
