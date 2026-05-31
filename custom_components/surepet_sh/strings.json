@@ -82,6 +82,26 @@
     "time": {
       "curfew_lock_time": { "name": "Curfew lock time" },
       "curfew_unlock_time": { "name": "Curfew unlock time" }
+    },
+    "event": {
+      "movement": {
+        "name": "Movement",
+        "state_attributes": {
+          "event_type": { "state": { "entered": "Entered", "left": "Left" } }
+        }
+      },
+      "feeding": {
+        "name": "Feeding",
+        "state_attributes": {
+          "event_type": { "state": { "fed": "Fed" } }
+        }
+      },
+      "drinking": {
+        "name": "Drinking",
+        "state_attributes": {
+          "event_type": { "state": { "drank": "Drank" } }
+        }
+      }
     }
   }
 }
