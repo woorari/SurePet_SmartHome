@@ -50,6 +50,17 @@
       "food_eaten_today": { "name": "Food eaten today" },
       "drinks_today": { "name": "Drinks today" },
       "water_drunk_today": { "name": "Water drunk today" }
+    },
+    "select": {
+      "lock_mode": {
+        "name": "Lock mode",
+        "state": {
+          "unlocked": "Unlocked",
+          "locked_in": "Locked in",
+          "locked_out": "Locked out",
+          "locked_all": "Locked both ways"
+        }
+      }
     }
   }
 }
