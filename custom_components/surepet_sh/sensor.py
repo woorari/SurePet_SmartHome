@@ -19,6 +19,7 @@ from homeassistant.const import (
     UnitOfElectricPotential,
     UnitOfMass,
     UnitOfTime,
+    UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -144,7 +145,9 @@ PET_SENSORS: tuple[SureHubPetSensorDescription, ...] = (
     SureHubPetSensorDescription(
         key="last_drinking_change",
         translation_key="last_drinking_change",
-        native_unit_of_measurement=UnitOfMass.GRAMS,
+        # Water is measured by weight on the device, but reported as volume
+        # (≈1 g/ml) so it reads naturally for a drinking station.
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda pet: pet.drinking.total_change if pet.drinking else None,
         exists_fn=lambda pet: pet.drinking is not None,
@@ -191,8 +194,8 @@ REPORT_SENSORS: tuple[SureHubReportSensorDescription, ...] = (
     SureHubReportSensorDescription(
         key="water_drunk_today",
         translation_key="water_drunk_today",
-        device_class=SensorDeviceClass.WEIGHT,
-        native_unit_of_measurement=UnitOfMass.GRAMS,
+        device_class=SensorDeviceClass.VOLUME,
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
         state_class=SensorStateClass.TOTAL,
         value_fn=lambda report, since: report.water_drunk(since),
     ),
