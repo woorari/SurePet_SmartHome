@@ -1,0 +1,90 @@
+{
+  "data": {
+    "user": { "id": 10000, "email_address": "you@example.com" },
+    "households": [
+      {
+        "id": 10001,
+        "name": "Test Home",
+        "timezone": { "timezone": "Region/City", "utc_offset": 3600 }
+      }
+    ],
+    "devices": [
+      {
+        "id": 20001,
+        "product_id": 1,
+        "household_id": 10001,
+        "name": "Hub",
+        "serial_number": "HUB000",
+        "control": { "led_mode": 0 },
+        "status": {
+          "online": true,
+          "version": { "device": { "hardware": "3.0", "firmware": "239.400" } }
+        }
+      },
+      {
+        "id": 20002,
+        "product_id": 6,
+        "household_id": 10001,
+        "parent_device_id": 20001,
+        "name": "Patio Door",
+        "serial_number": "FLAP00",
+        "control": { "locking": 0, "curfew": [] },
+        "status": {
+          "online": true,
+          "battery": 5.8,
+          "learn_mode": false,
+          "signal": { "device_rssi": -70, "hub_rssi": -65 },
+          "locking": { "mode": 0 },
+          "version": { "device": { "hardware": "0", "firmware": "335.422" } }
+        }
+      },
+      {
+        "id": 20003,
+        "product_id": 4,
+        "household_id": 10001,
+        "parent_device_id": 20001,
+        "name": "Feeder",
+        "serial_number": "FEED00",
+        "control": {
+          "bowls": { "type": 1, "settings": [{ "food_type": 1, "target": 100 }] },
+          "lid": { "close_delay": 4 }
+        },
+        "status": {
+          "online": true,
+          "battery": 5.4,
+          "signal": { "device_rssi": -79 }
+        }
+      },
+      {
+        "id": 20004,
+        "product_id": 8,
+        "household_id": 10001,
+        "parent_device_id": 20001,
+        "name": "Water Station",
+        "serial_number": "WATR00",
+        "control": {},
+        "status": {
+          "online": true,
+          "battery": 5.3,
+          "signal": { "device_rssi": -60 }
+        }
+      }
+    ],
+    "pets": [
+      {
+        "id": 30001,
+        "name": "Whiskers",
+        "species_id": 1,
+        "household_id": 10001,
+        "tag_id": 40001,
+        "photo": { "location": "https://example.invalid/whiskers.jpg" },
+        "position": { "where": 1, "since": "2026-01-01T03:31:08+00:00", "device_id": 20002 },
+        "status": {
+          "activity": { "where": 1, "since": "2026-01-01T03:31:08+00:00", "device_id": 20002 },
+          "feeding": { "device_id": 20003, "change": [-12.5, 0], "at": "2026-01-01T07:00:00+00:00" },
+          "drinking": { "device_id": 20004, "change": [-5.0], "at": "2026-01-01T08:00:00+00:00" }
+        }
+      }
+    ]
+  }
+}

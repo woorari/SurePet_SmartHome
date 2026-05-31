@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Sure Petcare",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Enter the password for {email} to reconnect.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Failed to connect to Sure Petcare."
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": { "name": "Connectivity" },
+      "curfew": { "name": "Curfew" },
+      "inside": { "name": "Inside" }
+    },
+    "sensor": {
+      "battery": { "name": "Battery" },
+      "battery_voltage": { "name": "Battery voltage" },
+      "signal_strength": { "name": "Signal strength" },
+      "location": {
+        "name": "Location",
+        "state": { "inside": "Inside", "outside": "Outside" }
+      },
+      "location_since": { "name": "Location since" },
+      "last_feeding": { "name": "Last feeding" },
+      "last_feeding_change": { "name": "Last feeding amount" },
+      "last_drinking": { "name": "Last drinking" },
+      "last_drinking_change": { "name": "Last drinking amount" }
+    }
+  }
+}

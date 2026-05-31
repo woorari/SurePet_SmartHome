@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  COMPONENT: surepet_sh
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set manifest version from tag
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          cd "custom_components/${COMPONENT}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp
+          mv manifest.tmp manifest.json
+
+      - name: Zip integration
+        run: |
+          cd "custom_components/${COMPONENT}"
+          zip -r "${COMPONENT}.zip" ./ -x '*__pycache__/*'
+
+      - name: Attach zip to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: custom_components/${{ env.COMPONENT }}/${{ env.COMPONENT }}.zip
