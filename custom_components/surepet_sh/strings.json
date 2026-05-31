@@ -94,6 +94,9 @@
       "curfew_lock_time": { "name": "Curfew lock time" },
       "curfew_unlock_time": { "name": "Curfew unlock time" }
     },
+    "image": {
+      "photo": { "name": "Photo" }
+    },
     "event": {
       "movement": {
         "name": "Movement",

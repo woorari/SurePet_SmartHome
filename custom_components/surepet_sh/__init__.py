@@ -19,6 +19,7 @@ from .coordinator import (
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.EVENT,
+    Platform.IMAGE,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
