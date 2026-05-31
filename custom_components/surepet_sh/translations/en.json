@@ -71,7 +71,8 @@
     },
     "switch": {
       "pet_indoor_only": { "name": "{pet} indoor only" },
-      "curfew_enabled": { "name": "Curfew" }
+      "curfew_enabled": { "name": "Curfew" },
+      "emergency_unlock": { "name": "Emergency unlock" }
     },
     "time": {
       "curfew_lock_time": { "name": "Curfew lock time" },
