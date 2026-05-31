@@ -1,7 +1,0 @@
-- [[Home]]
-- [[Installation]]
-- [[Configuration]]
-- [[Supported Devices]]
-- [[Entities]]
-- [[Emergency Unlock]]
-- [[FAQ]]
