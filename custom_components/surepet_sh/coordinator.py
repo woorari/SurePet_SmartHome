@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_TOKEN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from surehub import (
@@ -74,7 +75,40 @@ class SurePetCoordinator(DataUpdateCoordinator[Account]):
                 self.config_entry,
                 data={**self.config_entry.data, CONF_TOKEN: self.client.token},
             )
+        self._update_issues(account)
         return account
+
+    def _update_issues(self, account: Account) -> None:
+        """Raise/clear repair issues for offline or low-battery devices."""
+        for device in account.devices:
+            offline_id = f"device_offline_{device.id}"
+            if not device.status.online:
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    offline_id,
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="device_offline",
+                    translation_placeholders={"name": device.name},
+                )
+            else:
+                ir.async_delete_issue(self.hass, DOMAIN, offline_id)
+
+            battery_id = f"battery_low_{device.id}"
+            percentage = device.status.battery_percentage
+            if percentage is not None and percentage < 15:
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    battery_id,
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="battery_low",
+                    translation_placeholders={"name": device.name},
+                )
+            else:
+                ir.async_delete_issue(self.hass, DOMAIN, battery_id)
 
 
 class SurePetReportCoordinator(DataUpdateCoordinator[dict[int, PetReport]]):

@@ -1,4 +1,14 @@
 {
+  "issues": {
+    "device_offline": {
+      "title": "{name} is offline",
+      "description": "{name} is not reporting to the Sure Petcare cloud. Check that the device has power and that your hub is online."
+    },
+    "battery_low": {
+      "title": "{name} battery is low",
+      "description": "The battery in {name} is running low. Replace it soon to avoid losing connectivity."
+    }
+  },
   "config": {
     "step": {
       "user": {
