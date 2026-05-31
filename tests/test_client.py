@@ -117,6 +117,44 @@ async def test_silent_relogin_on_expiry(aresponses: Any, me_start_data: dict[str
         await client.close()
 
 
+async def test_set_device_control(aresponses: Any) -> None:
+    aresponses.add(
+        HOST,
+        "/api/device/20002/control/",
+        "PUT",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            text=json.dumps({"data": {"locking": 2}}),
+        ),
+    )
+    client = SureHubClient(token="TOK")
+    try:
+        result = await client.set_device_control(20002, {"locking": 2})
+        assert result["data"]["locking"] == 2
+    finally:
+        await client.close()
+
+
+async def test_set_pet_profile(aresponses: Any) -> None:
+    aresponses.add(
+        HOST,
+        "/api/device/20002/tag/40001",
+        "PUT",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            text=json.dumps({"data": {"profile": 3}}),
+        ),
+    )
+    client = SureHubClient(token="TOK")
+    try:
+        result = await client.set_pet_profile(20002, 40001, 3)
+        assert result["data"]["profile"] == 3
+    finally:
+        await client.close()
+
+
 async def test_relogin_failure_raises_auth_error(aresponses: Any) -> None:
     # Stored password no longer valid → AuthError (HA maps this to reauth).
     aresponses.add(HOST, "/api/me/start", "GET", aresponses.Response(status=401))

@@ -105,3 +105,17 @@ class SureHubClient(AuthClient):
             "GET", f"/report/household/{household_id}/pet/{pet_id}/aggregate"
         )
         return PetReport.model_validate((data or {}).get("data", {}))
+
+    async def set_device_control(self, device_id: int, control: dict[str, Any]) -> Any:
+        """Update a device's control settings (lock mode, curfew, bowls, …).
+
+        ``control`` is a partial control object, e.g. ``{"locking": 2}`` or
+        ``{"curfew": [...]}``.
+        """
+        return await self._request("PUT", f"/device/{device_id}/control/", json=control)
+
+    async def set_pet_profile(self, device_id: int, tag_id: int, profile: int) -> Any:
+        """Set a pet's permission on a flap (2 = outdoor, 3 = indoor only)."""
+        return await self._request(
+            "PUT", f"/device/{device_id}/tag/{tag_id}", json={"profile": profile}
+        )
