@@ -63,6 +63,13 @@ class DeviceStatus(SureModel):
         return max(0, min(100, round(pct)))
 
 
+class DeviceTag(SureModel):
+    """A pet tag assigned to a flap, with its per-pet permission profile."""
+
+    id: int | None = None
+    profile: int | None = None
+
+
 class DeviceControl(SureModel):
     """Desired (writable) device state. Read-only for now; kept loose."""
 
@@ -85,6 +92,11 @@ class Device(SureModel):
     mac_address: str | None = None
     control: DeviceControl = Field(default_factory=DeviceControl)
     status: DeviceStatus = Field(default_factory=DeviceStatus)
+    tags: list[DeviceTag] = Field(default_factory=list)
+
+    def tag_profile(self, tag_id: int) -> int | None:
+        """The permission profile for a given pet tag on this flap."""
+        return next((t.profile for t in self.tags if t.id == tag_id), None)
 
     @property
     def product_name(self) -> str:

@@ -61,6 +61,9 @@
           "locked_all": "Locked both ways"
         }
       }
+    },
+    "switch": {
+      "pet_indoor_only": { "name": "{pet} indoor only" }
     }
   }
 }
