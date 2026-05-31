@@ -30,3 +30,24 @@ class Account(SureModel):
     @property
     def hub(self) -> Device | None:
         return next((d for d in self.devices if d.product_id == ProductId.HUB), None)
+
+    @property
+    def current_user_id(self) -> int | None:
+        return (self.user or {}).get("id")
+
+    @property
+    def can_write(self) -> bool:
+        """Whether the logged-in user may change devices in this account.
+
+        Read-only household members get ``403`` on writes, so control entities
+        should not be offered to them. Defaults to ``True`` when membership
+        can't be determined (permissive).
+        """
+        uid = self.current_user_id
+        if uid is None:
+            return True
+        for household in self.households:
+            for member in household.users:
+                if member.user_id == uid:
+                    return member.write
+        return True

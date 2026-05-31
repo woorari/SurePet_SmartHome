@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from .account import Account
 from .device import Device, DeviceControl, DeviceStatus, FirmwareInfo, LockingStatus, Signal
-from .household import Household, Timezone
+from .household import Household, HouseholdUser, Timezone
 from .pet import ConsumptionEvent, Pet, Photo, Position
 from .report import BowlWeight, PetReport, ReportEvent
 
@@ -17,6 +17,7 @@ __all__ = [
     "DeviceStatus",
     "FirmwareInfo",
     "Household",
+    "HouseholdUser",
     "LockingStatus",
     "Pet",
     "PetReport",

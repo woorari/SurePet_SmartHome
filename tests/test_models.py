@@ -63,3 +63,23 @@ def test_unknown_product_id_does_not_raise() -> None:
 def test_unknown_enum_value_maps_to_unknown() -> None:
     assert LockMode(99) is LockMode.UNKNOWN
     assert PetLocation(99) is PetLocation.UNKNOWN
+
+
+def test_can_write_true_for_writable_member() -> None:
+    account = Account.model_validate(
+        {
+            "user": {"id": 1},
+            "households": [{"id": 9, "users": [{"write": True, "user": {"id": 1}}]}],
+        }
+    )
+    assert account.can_write is True
+
+
+def test_can_write_false_for_readonly_member() -> None:
+    account = Account.model_validate(
+        {
+            "user": {"id": 2},
+            "households": [{"id": 9, "users": [{"write": False, "user": {"id": 2}}]}],
+        }
+    )
+    assert account.can_write is False
