@@ -85,7 +85,7 @@
       "bowl_target": { "name": "Bowl {bowl} target" }
     },
     "switch": {
-      "pet_indoor_only": { "name": "{pet} indoor only" },
+      "pet_indoor_only": { "name": "Indoor only — {flap}" },
       "curfew_enabled": { "name": "Curfew" },
       "emergency_unlock": { "name": "Emergency unlock" },
       "responsive_mode": { "name": "Responsive mode" }

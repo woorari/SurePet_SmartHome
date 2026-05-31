@@ -11,13 +11,14 @@ from homeassistant.components.switch import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.storage import Store
 
 from surehub.enums import LockMode, PetProfile
 
-from .const import DOMAIN
+from .const import DOMAIN, MANUFACTURER
 from .coordinator import SurePetConfigEntry, SurePetCoordinator
 from .entity import SureHubDeviceEntity
 from .time import build_curfew
@@ -32,7 +33,7 @@ async def async_setup_entry(
     account = entry.runtime_data.account
     if not account.data.can_write:
         return
-    pet_name = {pet.tag_id: pet.name for pet in account.data.pets if pet.tag_id is not None}
+    pet_by_tag = {pet.tag_id: pet for pet in account.data.pets if pet.tag_id is not None}
     entities: list[SwitchEntity] = []
     flaps = [device for device in account.data.devices if device.is_flap]
     for device in flaps:
@@ -40,9 +41,14 @@ async def async_setup_entry(
         for tag in device.tags:
             if tag.id is None:
                 continue
+            pet = pet_by_tag.get(tag.id)
             entities.append(
                 SureHubIndoorOnlySwitch(
-                    account, device.id, tag.id, pet_name.get(tag.id, str(tag.id))
+                    account,
+                    device.id,
+                    tag.id,
+                    device.name,
+                    pet_id=pet.id if pet else None,
                 )
             )
     # Responsive mode (fast polling) for devices that support it.
@@ -116,14 +122,19 @@ class SureHubCurfewSwitch(SureHubDeviceEntity, SwitchEntity):
 
 
 class SureHubIndoorOnlySwitch(SureHubDeviceEntity, SwitchEntity):
-    """Per-pet 'indoor only' permission on a flap (profile 3 = on, 2 = off)."""
+    """Per-pet 'indoor only' permission on a flap (profile 3 = on, 2 = off).
+
+    Bound to the flap for state and control, but shown on the assigned pet's
+    device so the setting lives with the pet it governs.
+    """
 
     def __init__(
         self,
         coordinator: SurePetCoordinator,
         device_id: int,
         tag_id: int,
-        pet_name: str,
+        flap_name: str,
+        pet_id: int | None = None,
     ) -> None:
         super().__init__(
             coordinator,
@@ -134,7 +145,22 @@ class SureHubIndoorOnlySwitch(SureHubDeviceEntity, SwitchEntity):
             ),
         )
         self._tag_id = tag_id
-        self._attr_translation_placeholders = {"pet": pet_name}
+        self._pet_id = pet_id
+        self._attr_translation_placeholders = {"flap": flap_name}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        # Render on the assigned pet's device; fall back to the flap when the
+        # tag isn't matched to a known pet.
+        if self._pet_id is None:
+            return super().device_info
+        pet = self.coordinator.data.pet(self._pet_id)
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"pet-{self._pet_id}")},
+            manufacturer=MANUFACTURER,
+            model="Pet",
+            name=pet.name if pet else None,
+        )
 
     @property
     def is_on(self) -> bool | None:
