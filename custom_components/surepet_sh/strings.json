@@ -64,6 +64,10 @@
       "close_delay": {
         "name": "Lid close delay",
         "state": { "fast": "Fast", "normal": "Normal", "slow": "Slow" }
+      },
+      "led_mode": {
+        "name": "Hub light",
+        "state": { "off": "Off", "high": "Bright", "dimmed": "Dimmed" }
       }
     },
     "number": {
@@ -72,7 +76,8 @@
     "switch": {
       "pet_indoor_only": { "name": "{pet} indoor only" },
       "curfew_enabled": { "name": "Curfew" },
-      "emergency_unlock": { "name": "Emergency unlock" }
+      "emergency_unlock": { "name": "Emergency unlock" },
+      "responsive_mode": { "name": "Responsive mode" }
     },
     "time": {
       "curfew_lock_time": { "name": "Curfew lock time" },

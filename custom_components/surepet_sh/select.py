@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from surehub.enums import LockMode
+from surehub.enums import HubLedMode, LockMode, ProductId
 
-from .coordinator import SurePetConfigEntry
+from .coordinator import SurePetConfigEntry, SurePetCoordinator
 from .entity import SureHubDeviceEntity
 
 # Selectable flap lock modes (curfew is an automatic status, not set here).
@@ -36,6 +37,21 @@ CLOSE_DELAY_SELECT = SelectEntityDescription(
     options=list(CLOSE_DELAY_OPTIONS),
 )
 
+# Hub LED brightness.
+LED_OPTIONS: dict[str, HubLedMode] = {
+    "off": HubLedMode.OFF,
+    "high": HubLedMode.HIGH,
+    "dimmed": HubLedMode.DIMMED,
+}
+_LED_TO_OPTION = {mode: option for option, mode in LED_OPTIONS.items()}
+
+LED_MODE_SELECT = SelectEntityDescription(
+    key="led_mode",
+    translation_key="led_mode",
+    entity_category=EntityCategory.CONFIG,
+    options=list(LED_OPTIONS),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -52,6 +68,8 @@ async def async_setup_entry(
             entities.append(SureHubLockModeSelect(account, device.id))
         if device.is_feeder and device.control.lid is not None:
             entities.append(SureHubCloseDelaySelect(account, device.id))
+        if device.product_id == ProductId.HUB and device.control.led_mode is not None:
+            entities.append(SureHubLedModeSelect(account, device.id))
     async_add_entities(entities)
 
 
@@ -91,5 +109,25 @@ class SureHubCloseDelaySelect(SureHubDeviceEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.client.set_device_control(
             self._device_id, {"lid": {"close_delay": CLOSE_DELAY_OPTIONS[option]}}
+        )
+        await self.coordinator.async_request_refresh()
+
+
+class SureHubLedModeSelect(SureHubDeviceEntity, SelectEntity):
+    """Hub LED brightness."""
+
+    def __init__(self, coordinator: SurePetCoordinator, device_id: int) -> None:
+        super().__init__(coordinator, device_id, LED_MODE_SELECT)
+
+    @property
+    def current_option(self) -> str | None:
+        device = self.device
+        if device is None or device.control.led_mode is None:
+            return None
+        return _LED_TO_OPTION.get(HubLedMode(device.control.led_mode))
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.client.set_device_control(
+            self._device_id, {"led_mode": int(LED_OPTIONS[option])}
         )
         await self.coordinator.async_request_refresh()

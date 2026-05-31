@@ -107,6 +107,7 @@ class DeviceControl(SureModel):
     bowls: BowlsControl | None = None
     lid: LidControl | None = None
     training_mode: int | None = None
+    fast_polling: bool | None = None
 
 
 class Device(SureModel):

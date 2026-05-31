@@ -9,6 +9,7 @@ from homeassistant.components.switch import (
     SwitchEntity,
     SwitchEntityDescription,
 )
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -44,11 +45,43 @@ async def async_setup_entry(
                     account, device.id, tag.id, pet_name.get(tag.id, str(tag.id))
                 )
             )
+    # Responsive mode (fast polling) for devices that support it.
+    for device in account.data.devices:
+        if device.control.fast_polling is not None:
+            entities.append(SureHubResponsiveModeSwitch(account, device.id))
     # Household-level emergency unlock, anchored to the hub.
     hub = account.data.hub
     if hub is not None and flaps:
         entities.append(SureHubEmergencyUnlockSwitch(account, hub.id, hass, entry.entry_id))
     async_add_entities(entities)
+
+
+class SureHubResponsiveModeSwitch(SureHubDeviceEntity, SwitchEntity):
+    """Fast-polling 'responsive mode' for a device (higher battery use)."""
+
+    def __init__(self, coordinator: SurePetCoordinator, device_id: int) -> None:
+        super().__init__(
+            coordinator,
+            device_id,
+            SwitchEntityDescription(
+                key="responsive_mode",
+                translation_key="responsive_mode",
+                entity_category=EntityCategory.CONFIG,
+            ),
+        )
+
+    @property
+    def is_on(self) -> bool | None:
+        device = self.device
+        return device.control.fast_polling if device else None
+
+    async def async_turn_on(self, **kwargs: object) -> None:
+        await self.coordinator.client.set_device_control(self._device_id, {"fast_polling": True})
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs: object) -> None:
+        await self.coordinator.client.set_device_control(self._device_id, {"fast_polling": False})
+        await self.coordinator.async_request_refresh()
 
 
 class SureHubCurfewSwitch(SureHubDeviceEntity, SwitchEntity):
